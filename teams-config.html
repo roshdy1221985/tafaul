@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إعداد تفاعل الحصة في تيمز</title>
+<style>
+body{margin:0;font-family:'Segoe UI','Tajawal',Arial,sans-serif;background:#f5f5f5;color:#242424;padding:20px;line-height:1.8}
+@media (prefers-color-scheme:dark){body{background:#1f1f1f;color:#eee}.box{background:#2b2b2b!important;border-color:#444!important}input{background:#1f1f1f!important;color:#eee!important;border-color:#555!important}}
+h1{font-size:20px;margin:0 0 6px}
+p{margin:0 0 12px;color:#777}
+.box{background:#fff;border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;margin:8px 0}
+input[type=radio]{margin-top:7px;width:18px;height:18px}
+input[type=text]{width:100%;box-sizing:border-box;font-size:18px;padding:10px;border:1px solid #ccc;border-radius:8px;letter-spacing:.2em;text-align:center;direction:ltr}
+small{color:#888}
+</style>
+</head>
+<body>
+<h1>تفاعل الحصة</h1>
+<p>أنشطة تفاعلية ومجموعات بأدوار داخل اجتماع تيمز · أ. رشدي سيد</p>
+<div class="box">
+ <b>ماذا يظهر في هذا التبويب؟</b>
+ <label><input type="radio" name="v" value="s" checked><span>شاشة الطالب<br><small>يظهر للطلاب النشاط الحالي داخل تيمز (اللوحة الجانبية في الاجتماع أو تبويب في الدردشة)</small></span></label>
+ <label><input type="radio" name="v" value="t"><span>لوحة المعلم<br><small>الأفضل فتح لوحة المعلم في المتصفح ومشاركة الشاشة؛ استخدم هذا الخيار فقط إن أردتها داخل تيمز</small></span></label>
+</div>
+<div class="box" id="codeBox">
+ <b>رمز الحصة (اختياري)</b>
+ <p>اكتب الرمز الظاهر في لوحة المعلم ليدخل الطلاب مباشرة. اتركه فارغًا ليكتبه كل طالب بنفسه.</p>
+ <input type="text" id="code" maxlength="8" placeholder="K7M2P">
+</div>
+<script src="teams-js.min.js"></script>
+<script>
+(function(){
+var BASE=location.href.replace(/[#?].*$/,'').replace(/[^\/]*$/,'');
+function val(){var c=document.getElementById('code').value.trim().toUpperCase();return {v:(document.querySelector('input[name=v]:checked')||{}).value||'s',c:/^[A-Z0-9]{3,16}$/.test(c)?c:''}}
+function valid(){var x=val(),raw=document.getElementById('code').value.trim();return !raw||!!x.c}
+if(!window.microsoftTeams){document.body.insertAdjacentHTML('beforeend','<p style="color:#c00">افتح هذه الصفحة من داخل تيمز عند إضافة التطبيق كتبويب.</p>');return}
+microsoftTeams.app.initialize().then(function(){
+  function upd(){microsoftTeams.pages.config.setValidityState(valid())}
+  document.getElementById('code').addEventListener('input',upd);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=v]'),function(r){r.addEventListener('change',function(){document.getElementById('codeBox').style.display=val().v==='t'?'none':'';upd()})});
+  microsoftTeams.pages.config.registerOnSaveHandler(function(ev){var x=val();
+    var url=x.v==='t'?BASE+'teacher.html':BASE+'index.html'+(x.c?'#s='+x.c+'&teams=1':'#teams=1');
+    microsoftTeams.pages.config.setConfig({entityId:'tafaul-'+x.v+'-'+(x.c||'any'),contentUrl:url,websiteUrl:url,suggestedDisplayName:x.v==='t'?'لوحة المعلم':'تفاعل الحصة'}).then(function(){ev.notifySuccess()}).catch(function(e){ev.notifyFailure(String(e))})});
+  upd()});
+})();
+</script>
+</body>
+</html>
